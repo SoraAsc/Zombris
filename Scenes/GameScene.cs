@@ -29,11 +29,13 @@ public class GameScene : IScene
         foreach(var e in entities) e.Draw(sb);
     }
 
-    public void UnloadContent() { }
+    public void UnloadContent() 
+    { 
+        StopEntities();
+    }
 
-    // public void StopEntities()
-    // {
-    //     foreach(var z in zombies) z.Stop();
-    //     foreach(var b in blues) b.Stop();
-    // }
+    private void StopEntities()
+    {
+        foreach(var e in entities) e.Stop();
+    }
 }

@@ -61,4 +61,9 @@ public class Game1 : Game
 
         base.Draw(gameTime);
     }
+
+    protected override void UnloadContent()
+    {
+        SceneManager.CurrentScene.UnloadContent();
+    }
 }
