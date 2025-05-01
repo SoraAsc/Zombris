@@ -5,10 +5,10 @@ using Zombris.Core;
 
 namespace Zombris.Entities;
 
-public abstract class Entity(Point GridPosition)
+public abstract class Entity(Point GridPosition, Color Color)
 {
     public Point GridPosition { get; set; } = GridPosition;
-    public static Color Color => Color.Blue;
+    protected Color Color = Color;
 
     public virtual void Draw(SpriteBatch spriteBatch)
     {

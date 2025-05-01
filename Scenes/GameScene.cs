@@ -15,7 +15,8 @@ public class GameScene : IScene
     {
         grid = new Grid(GameConfig.GridWidth, GameConfig.GridHeight, GameConfig.CellSize);
         entities = [
-            new Zombie(new Point(5, 5))
+            new Zombie(new Point(9, 9)),
+            new Blue(new Point(0, 0))
         ];
     }
 
