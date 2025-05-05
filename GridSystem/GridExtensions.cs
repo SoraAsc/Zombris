@@ -1,0 +1,18 @@
+using System;
+using Microsoft.Xna.Framework;
+using Zombris.Entities;
+
+namespace Zombris.GridSystem;
+
+public static class GridExtensions
+{
+    public static bool TryPlaceCheck(this Grid grid, int x, int y)
+    {
+        try
+        {
+            var dummy = new Blue("check", new Point(x, y));
+            return grid.TryMove(dummy, x, y);
+        }
+        catch { return false; }
+    }
+}

@@ -3,6 +3,6 @@ using Microsoft.Xna.Framework;
 
 namespace Zombris.Entities;
 
-public class Blue(Point position) : Entity(position, Color.Blue, "1")
+public class Blue(string id, Point position) : Entity(id, position, Color.Blue)
 {
 }

@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Zombris.Core;
 using Zombris.Entities;
 
 namespace Zombris.GridSystem;
@@ -15,6 +16,7 @@ public class Grid(int width, int height, int cellSize)
     private readonly Dictionary<(int x, int y), Entity> entities = [];
 
     public bool GameOver { get; private set; } = false;
+    private readonly object lockObj = new();
 
     public void AddEntities(List<Entity> entities)
     {
@@ -23,15 +25,32 @@ public class Grid(int width, int height, int cellSize)
 
     public void StartAllEntities()
     {
-        foreach (var e in entities.Values) e.Start();
+        foreach (var e in entities.Values.ToList()) e?.Start(this);
     }
 
     public void StopAllEntities()
     {
         GameOver = true;
-        foreach (var e in entities.Values) e.Stop();
+        foreach (var e in entities.Values.ToList()) e?.Stop();
     }
-    
+
+    public bool TryMove(Entity e, int nx, int ny)
+    {
+        lock(lockObj)
+        {
+            if (nx < 0 || ny < 0 || nx >= (GameConfig.GridWidth - 1) || ny >= (GameConfig.GridHeight - 1)) return false;
+            if (entities.ContainsKey((nx, ny)) && entities[(nx, ny)] != null) return false;
+            entities[(e.Position.X, e.Position.Y)] = null;
+            entities[(nx, ny)] = e;
+            e.ChangePosition(nx, ny);
+            return true;
+        }
+    }
+
+    public void Place(Entity e, int x, int y)
+    {
+        lock(lockObj) entities[(x, y)] = e;
+    }
 
     public void Draw(SpriteBatch spriteBatch, Color? tileColor = null, bool showLines = true)
     {
@@ -65,6 +84,6 @@ public class Grid(int width, int height, int cellSize)
 
     private void DrawEntities(SpriteBatch spriteBatch)
     {
-        foreach (var e in entities.Values) e.Draw(spriteBatch);
+        foreach (var e in entities.Values.ToList()) e?.Draw(spriteBatch);
     }
 }

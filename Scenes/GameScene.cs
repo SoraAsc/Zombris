@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Zombris.Core;
-using Zombris.Entities;
+using Zombris.Entities.Factory;
 using Zombris.GridSystem;
 
 namespace Zombris.Scenes;
@@ -13,11 +12,7 @@ public class GameScene : IScene
     public void LoadContent()
     {
         grid = new Grid(GameConfig.GridWidth, GameConfig.GridHeight, GameConfig.CellSize);
-        List<Entity> entities = [
-            new Zombie(new Point(9, 9)),
-            new Blue(new Point(0, 0))
-        ];
-        grid.AddEntities(entities);
+        grid.AddEntities(FactoryManager.CreateRandomEntities(grid, 10, 10));
 
         grid.StartAllEntities();
     }
