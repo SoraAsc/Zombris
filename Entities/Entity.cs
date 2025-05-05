@@ -7,38 +7,41 @@ using Zombris.Core;
 
 namespace Zombris.Entities;
 
-public abstract class Entity
+public abstract class Entity(Point Position, Color color, string id)
 {
-    protected Point GridPosition;
-    protected Color Color;
-
+    protected string id = id;
+    public Point Position { get; protected set; } = Position;
     protected bool isRunning = true;
+
     protected Thread moveThread;
+    protected Color color = color;
     private static readonly Random random = new();
 
-    public Entity(Point GridPosition, Color Color)
+    public void Start()
     {
-        this.GridPosition = GridPosition;
-        this.Color = Color;
-
         moveThread = new(MoveLoop);
         moveThread.Start();
+    }
+
+    public void Stop()
+    {
+        isRunning = false;
+        moveThread.Join();
     }
 
     private void MoveLoop()
     {
         while (isRunning)
         {
-            Thread.Sleep(1000); // 1 second, i need to customiz later
+            Thread.Sleep(200); // 200 ms, i need to customize later
             int dx = random.Next(-1, 2);
             int dy = random.Next(-1, 2);
-            GridPosition += new Point(dx, dy);
-            GridPosition = new Point(
-                MathHelper.Clamp(GridPosition.X, 0, GameConfig.GridWidth - 1),
-                MathHelper.Clamp(GridPosition.Y, 0, GameConfig.GridHeight - 1)
+            Position += new Point(dx, dy);
+            Position = new Point(
+                MathHelper.Clamp(Position.X, 0, GameConfig.GridWidth - 1),
+                MathHelper.Clamp(Position.Y, 0, GameConfig.GridHeight - 1)
             );
         }
-
     }
 
     public void Draw(SpriteBatch spriteBatch)
@@ -47,20 +50,14 @@ public abstract class Entity
         int pieceSize = GameConfig.PieceSize;
         
         Texture2D texture = new(SceneManager.GraphicsDevice, 1, 1);
-        texture.SetData([Color]);
+        texture.SetData([color]);
 
-        int x = GridPosition.X * cellSize;
-        int y = GridPosition.Y * cellSize;
+        int x = Position.X * cellSize;
+        int y = Position.Y * cellSize;
 
         int offset = (cellSize - pieceSize) / 2;
 
         var rectangle = new Rectangle(x + offset, y + offset, pieceSize, pieceSize);
-        spriteBatch.Draw(texture, rectangle, Color);
-    }
-
-    public void Stop()
-    {
-        isRunning = false;
-        moveThread.Join();
+        spriteBatch.Draw(texture, rectangle, color);
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace Zombris.Entities;
 
-public class Zombie(Point GridPosition) : Entity(GridPosition, Color.Green)
+public class Zombie(Point position) : Entity(position, Color.Green, "0")
 {
     
 }
