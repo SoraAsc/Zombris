@@ -11,18 +11,29 @@ public static class FactoryManager
 {
     private static int nextId = 1;
     private static readonly Random rng = new();
-    public static Entity Create(EntityType type, int x, int y)
+
+    public static Entity Create(GameConfig.ZombieType type, int x, int y)
     {
-        Entity e = type.ToString().StartsWith("Blue")
-            ? new Blue(type + "_" + nextId++, new Point(x, y))
-            : new Zombie(type + "_" + nextId++, new Point(x, y));
+        Entity e = new Zombie(type + "_" + nextId++, new Point(x, y));
         switch (type)
         {
-            case EntityType.Blue:
-                e.AddComponent(new MovementComponent(new RandomMoveStrategy()));
+            case GameConfig.ZombieType.ZombiePrime:
+                e.InitializeValues(1, 500);
+                e.AddComponent(new MovementComponent(new ZombiePrimeChaseStrategy()));
+                // e.AddComponent(new BehaviorComponent([new InfectStrategy(1)]));
                 break;
-            case EntityType.Zombie:
-                e.AddComponent(new MovementComponent(new RandomMoveStrategy()));
+        }
+        return e;
+    }
+
+    public static Entity Create(GameConfig.BlueType type, int x, int y)
+    {
+        Entity e = new Blue(type + "_" + nextId++, new Point(x, y));
+        switch (type)
+        {
+            case GameConfig.BlueType.BluePrime:
+                e.InitializeValues(1, 500);
+                e.AddComponent(new MovementComponent(new BlueSmartMoveStrategy()));
                 break;
         }
         return e;
@@ -33,7 +44,8 @@ public static class FactoryManager
         var all = new List<Entity>();
         for (int i = 0; i < numBlue; i++)
         {
-            var type = (EntityType)rng.Next(0, 1); // Blue types
+            int length = Enum.GetNames(typeof(GameConfig.BlueType)).Length;
+            var type = (GameConfig.BlueType)rng.Next(0, length); // Blue types
             int x, y;
             do { 
                 x = rng.Next(GameConfig.GridWidth); 
@@ -45,7 +57,8 @@ public static class FactoryManager
         }
         for (int i = 0; i < numZombies; i++)
         {
-            var type = (EntityType)rng.Next(1, 2); // Zombie types
+            int length = Enum.GetNames(typeof(GameConfig.ZombieType)).Length;
+            var type = (GameConfig.ZombieType)rng.Next(0, length); // Zombie types
             int x, y;
             do { 
                 x = rng.Next(GameConfig.GridWidth); 

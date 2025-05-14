@@ -34,11 +34,15 @@ public class Grid(int width, int height, int cellSize)
         foreach (var e in entities.Values.ToList()) e?.Stop();
     }
 
+    public Entity GetEntityAt(int i, int j) { lock(lockObj) {return entities.ContainsKey((i, j)) ? entities[(i, j)] : null; } }
+    public static bool IsInside(int x, int y) => x >= 0 && x < GameConfig.GridWidth && y >= 0 && y < GameConfig.GridHeight;
+    public bool CanMove(int x, int y) => IsInside(x, y) && (!entities.ContainsKey((x, y)) || entities[(x, y)] == null);
+
     public bool TryMove(Entity e, int nx, int ny)
     {
         lock(lockObj)
         {
-            if (nx < 0 || ny < 0 || nx >= (GameConfig.GridWidth - 1) || ny >= (GameConfig.GridHeight - 1)) return false;
+            if (nx < 0 || ny < 0 || nx > (GameConfig.GridWidth - 1) || ny > (GameConfig.GridHeight - 1)) return false;
             if (entities.ContainsKey((nx, ny)) && entities[(nx, ny)] != null) return false;
             entities[(e.Position.X, e.Position.Y)] = null;
             entities[(nx, ny)] = e;
@@ -47,9 +51,36 @@ public class Grid(int width, int height, int cellSize)
         }
     }
 
+    public List<Entity> GetNeighbors(int x, int y, int range)
+    {
+        List<Entity> neighbors = [];
+        lock (lockObj)
+        {
+            for (int dx = -range; dx <= range; dx++)
+            {
+                for (int dy = -range; dy <= range; dy++)
+                {
+                    if(dx == 0 && dy == 0) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (entities.ContainsKey((nx, ny)) && IsInside(nx, ny))
+                    {
+                        var e = entities[(nx, ny)];
+                        if (e != null) neighbors.Add(e);
+                    }
+                }
+            }
+        }
+        return neighbors;
+    }
+
     public void Place(Entity e, int x, int y)
     {
-        lock(lockObj) entities[(x, y)] = e;
+        lock(lockObj)
+        {
+            // if(entities.ContainsKey((x, y)) && entities[(x, y)] != null && e.IsRunning) entities[(x, y)]?.Stop();
+            e.ChangePosition(x, y);
+            entities[(x, y)] = e;
+        }
     }
 
     public void Draw(SpriteBatch spriteBatch, Color? tileColor = null, bool showLines = true)
@@ -84,6 +115,8 @@ public class Grid(int width, int height, int cellSize)
 
     private void DrawEntities(SpriteBatch spriteBatch)
     {
-        foreach (var e in entities.Values.ToList()) e?.Draw(spriteBatch);
+        List<Entity> snapshot;
+        lock (lockObj) { snapshot = [.. entities.Values]; }
+        foreach (var e in snapshot) e?.Draw(spriteBatch);
     }
 }

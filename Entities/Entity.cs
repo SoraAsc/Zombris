@@ -15,23 +15,34 @@ public abstract class Entity(string id, Point Position, Color color)
 {
     protected string id = id;
     public Point Position { get; protected set; } = Position;
-    protected bool isRunning = true;
+    public bool IsRunning {get; protected set;} = false;
 
     private readonly Dictionary<Type, IEntityComponent> components = [];
+
+    // Attributes
+    protected int currentHp = 1;
+    protected int speedMs = 200;
 
     protected Thread moveThread;
     protected Color color = color;
 
     public void Start(Grid grid)
     {
+        IsRunning = true;
         moveThread = new(() => Simulate(grid));
         moveThread.Start();
     }
 
     public void Stop()
     {
-        isRunning = false;
-        moveThread.Join();
+        IsRunning = false;
+        if(moveThread != null && moveThread.IsAlive) moveThread.Interrupt();
+    }
+
+    public void InitializeValues(int hp, int speedMs)
+    {
+        currentHp = hp;
+        this.speedMs = speedMs;
     }
 
     public void ChangePosition(int x, int y)
@@ -55,12 +66,15 @@ public abstract class Entity(string id, Point Position, Color color)
         return comp as T;
     }
 
+    public bool IsAZombie => GetType() == typeof(Zombie);
+
     private void Simulate(Grid grid)
     {
-        while (isRunning)
+        while (IsRunning)
         {
             Get<MovementComponent>()?.Execute(grid);
-            Thread.Sleep(200); // 200 ms, i need to customize later
+            Get<BehaviorComponent>()?.Execute(grid);
+            Thread.Sleep(speedMs);
         }
     }
 

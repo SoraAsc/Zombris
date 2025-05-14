@@ -10,4 +10,7 @@ public static class GameConfig
 
     public const int ScreenWidth = GridWidth * CellSize;
     public const int ScreenHeight = GridHeight * CellSize;
+
+    public enum ZombieType { ZombiePrime };
+    public enum BlueType { BluePrime };
 }
