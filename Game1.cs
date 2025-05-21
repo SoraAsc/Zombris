@@ -18,6 +18,7 @@ public class Game1 : Game
             PreferredBackBufferWidth = GameConfig.ScreenWidth,
             PreferredBackBufferHeight = GameConfig.ScreenHeight
         };
+        // Window.IsBorderless = true;
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
     }

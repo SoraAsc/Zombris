@@ -14,13 +14,20 @@ public static class FactoryManager
 
     public static Entity Create(GameConfig.ZombieType type, int x, int y)
     {
-        Entity e = new ActorEntity(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Zombie);
+        ActorEntity e = new(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Zombie);
         switch (type)
         {
-            case GameConfig.ZombieType.ZombiePrime:
-                e.InitializeValues(1, 500);
+            case GameConfig.ZombieType.PrimeZombie:
+                e.InitializeValues(1, 600);
                 e.AddComponent(new MovementComponent(new ZombiePrimeChaseStrategy()));
                 e.AddComponent(new BehaviorComponent([new InfectStrategy(1)]));
+                e.ChangeActorSprite(TextureManager.Get("Sprites/Entities/Zombie/zombie_0"), Color.Green);
+                break;
+            case GameConfig.ZombieType.RandomWalkerZombie:
+                e.InitializeValues(1, 700);
+                e.AddComponent(new MovementComponent(new RandomMoveStrategy()));
+                e.AddComponent(new BehaviorComponent([new InfectStrategy(1)]));
+                e.ChangeActorSprite(TextureManager.Get("Sprites/Entities/Zombie/zombie_1"), Color.White);
                 break;
         }
         return e;
@@ -28,12 +35,18 @@ public static class FactoryManager
 
     public static Entity Create(GameConfig.BlueType type, int x, int y)
     {
-        Entity e = new ActorEntity(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Blue);
+        ActorEntity e = new(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Blue);
         switch (type)
         {
-            case GameConfig.BlueType.BluePrime:
+            case GameConfig.BlueType.PrimeBlue:
                 e.InitializeValues(1, 500);
                 e.AddComponent(new MovementComponent(new BlueSmartMoveStrategy()));
+                e.ChangeActorSprite(TextureManager.Get("Sprites/Entities/Blue/blue_0"), Color.Blue);
+                break;
+            case GameConfig.BlueType.RandomWalkerBlue:
+                e.InitializeValues(1, 600);
+                e.AddComponent(new MovementComponent(new RandomMoveStrategy()));
+                e.ChangeActorSprite(TextureManager.Get("Sprites/Entities/Blue/blue_1"), Color.White);
                 break;
         }
         return e;

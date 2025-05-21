@@ -20,6 +20,7 @@ public abstract class Entity(string id, Point Position, Color color)
 
     // Attributes
     protected int currentHp = 1;
+    protected int maxHp = 1;
     protected int speedMs = 200;
 
     protected Thread moveThread;
@@ -40,7 +41,7 @@ public abstract class Entity(string id, Point Position, Color color)
 
     public void InitializeValues(int hp, int speedMs)
     {
-        currentHp = hp;
+        maxHp = currentHp = hp;
         this.speedMs = speedMs;
     }
 
@@ -61,6 +62,7 @@ public abstract class Entity(string id, Point Position, Color color)
 
     protected void ExchangeCurrentComponents(Entity otherEntity)
     {
+        InitializeValues(otherEntity.maxHp, otherEntity.speedMs);
         components.Clear();
         foreach (Type key in otherEntity.components.Keys) AddComponent(otherEntity.components[key].Clone());
     }

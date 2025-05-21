@@ -1,29 +1,32 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Zombris.Core;
 using static Zombris.Core.GameConfig;
 
 namespace Zombris.Entities;
 
 public class ActorEntity(string id, Point position, ActorEntityType type) : Entity(id, position, Color.Blue)
 {
+    private Texture2D actorTexture = TextureManager.Get("Sprites/Entities/Blue/blue_0");
     public ActorEntityType Type { get; private set; } = type;
+
+    public void ChangeActorSprite(Texture2D texture, Color color)
+    {
+        actorTexture = texture;
+        this.color = color;
+    }
 
     public void ChangeActorType(ActorEntityType type, ActorEntity infectedBy)
     {
         Type = type;
         ExchangeCurrentComponents(infectedBy);
+        ChangeActorSprite(infectedBy.actorTexture, infectedBy.color);
     }
 
     public override void Draw(SpriteBatch spriteBatch)
     {
-        // base.Draw(spriteBatch);
         int cellSize = CellSize;
         int pieceSize = PieceSize;
-        Color color = Type == ActorEntityType.Blue ? Color.Blue : Color.Green;
-        Texture2D texture = new(SceneManager.GraphicsDevice, 1, 1);
-        texture.SetData([color]);
 
         int x = Position.X * cellSize;
         int y = Position.Y * cellSize;
@@ -31,7 +34,7 @@ public class ActorEntity(string id, Point position, ActorEntityType type) : Enti
         int offset = (cellSize - pieceSize) / 2;
 
         var rectangle = new Rectangle(x + offset, y + offset, pieceSize, pieceSize);
-        spriteBatch.Draw(texture, rectangle, color);
+        spriteBatch.Draw(actorTexture, rectangle, color);
     }
 
 }
