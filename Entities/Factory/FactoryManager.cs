@@ -48,7 +48,7 @@ public static class FactoryManager
             var type = (GameConfig.BlueType)rng.Next(0, length); // Blue types
             int x, y;
             do { 
-                x = rng.Next(GameConfig.GridWidth); 
+                x = rng.Next(0, 4); 
                 y = rng.Next(GameConfig.GridHeight); 
             } while (!grid.TryPlaceCheck(x, y));
             var e = Create(type, x, y);
@@ -61,7 +61,7 @@ public static class FactoryManager
             var type = (GameConfig.ZombieType)rng.Next(0, length); // Zombie types
             int x, y;
             do { 
-                x = rng.Next(GameConfig.GridWidth); 
+                x = rng.Next(GameConfig.GridWidth - 3, GameConfig.GridWidth); 
                 y = rng.Next(GameConfig.GridHeight); 
             } while (!grid.TryPlaceCheck(x, y));
             var e = Create(type, x, y);

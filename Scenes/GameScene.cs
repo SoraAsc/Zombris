@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Xna.Framework;
 using Zombris.Core;
 using Zombris.Entities.Factory;
@@ -7,12 +8,13 @@ namespace Zombris.Scenes;
 
 public class GameScene : IScene
 {
+    private static readonly Random rng = new();
     private Grid grid;
 
     public void LoadContent()
     {
         grid = new Grid(GameConfig.GridWidth, GameConfig.GridHeight, GameConfig.CellSize);
-        grid.AddEntities(FactoryManager.CreateRandomEntities(grid, 10, 10));
+        grid.AddEntities(FactoryManager.CreateRandomEntities(grid, rng.Next(10, 30), rng.Next(10, 20)));
 
         grid.StartAllEntities();
     }
