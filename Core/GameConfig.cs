@@ -13,4 +13,6 @@ public static class GameConfig
 
     public enum ZombieType { ZombiePrime };
     public enum BlueType { BluePrime };
+
+    public enum ActorEntityType { Blue, Zombie }
 }

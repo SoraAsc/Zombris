@@ -9,7 +9,6 @@ using Zombris.Entities.Behaviours;
 using Zombris.GridSystem;
 
 namespace Zombris.Entities;
-public enum EntityType { Blue, Zombie }
 
 public abstract class Entity(string id, Point Position, Color color)
 {
@@ -54,10 +53,16 @@ public abstract class Entity(string id, Point Position, Color color)
         );
     }
 
-    public void AddComponent<T>(T component) where T : IEntityComponent
+    public void AddComponent(IEntityComponent component)
     {
-        components[typeof(T)] = component;
+        components[component.GetType()] = component;
         component.Owner = this;
+    }
+
+    protected void ExchangeCurrentComponents(Entity otherEntity)
+    {
+        components.Clear();
+        foreach (Type key in otherEntity.components.Keys) AddComponent(otherEntity.components[key].Clone());
     }
 
     public T Get<T>() where T : class, IEntityComponent
@@ -65,8 +70,6 @@ public abstract class Entity(string id, Point Position, Color color)
         components.TryGetValue(typeof(T), out var comp);
         return comp as T;
     }
-
-    public bool IsAZombie => GetType() == typeof(Zombie);
 
     private void Simulate(Grid grid)
     {
@@ -78,7 +81,7 @@ public abstract class Entity(string id, Point Position, Color color)
         }
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    public virtual void Draw(SpriteBatch spriteBatch)
     {
         int cellSize = GameConfig.CellSize;
         int pieceSize = GameConfig.PieceSize;

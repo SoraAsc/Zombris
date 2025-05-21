@@ -5,21 +5,24 @@ using Zombris.GridSystem;
 
 namespace Zombris.Entities.Behaviours;
 
-public interface IMovementStrategy 
-{ 
+public interface IMovementStrategy
+{
     (int, int) NextPosition(Entity e, Grid g); 
+    IMovementStrategy Clone();
 }
 
 public class RandomMoveStrategy : IMovementStrategy
 {
     private static readonly Random rng = new();
-    
+
     public (int, int) NextPosition(Entity e, Grid g)
     {
         var opts = new (int dx, int dy)[] { (0, 1), (1, 0), (0, -1), (-1, 0) };
-        var (dx, dy) = opts[rng.Next(opts.Length)]; 
+        var (dx, dy) = opts[rng.Next(opts.Length)];
         return (e.Position.X + dx, e.Position.Y + dy);
     }
+    
+    public IMovementStrategy Clone() => new RandomMoveStrategy();
 }
 
 // Persegue o Blue mais próximo
@@ -30,15 +33,16 @@ public class ZombiePrimeChaseStrategy : IMovementStrategy
         // busca o Blue mais próximo
         Entity target = null;
         int bestDist = int.MaxValue;
-        for(int i = 0; i < GameConfig.GridWidth; i++) for(int j = 0; j < GameConfig.GridHeight; j++)
-        {
-            var other = g.GetEntityAt(i, j);
-            if (other != null && !other.IsAZombie)
+        for (int i = 0; i < GameConfig.GridWidth; i++) for (int j = 0; j < GameConfig.GridHeight; j++)
             {
-                int d = Math.Abs(e.Position.X - i) + Math.Abs(e.Position.Y - j);
-                if (d < bestDist) { bestDist = d; target = other; }
+                var other = g.GetEntityAt(i, j);
+                ActorEntity actor = (ActorEntity)other;
+                if (actor != null && actor.Type != GameConfig.ActorEntityType.Zombie)
+                {
+                    int d = Math.Abs(e.Position.X - i) + Math.Abs(e.Position.Y - j);
+                    if (d < bestDist) { bestDist = d; target = other; }
+                }
             }
-        }
         if (target != null)
         {
             int dx = Math.Sign(target.Position.X - e.Position.X);
@@ -50,6 +54,8 @@ public class ZombiePrimeChaseStrategy : IMovementStrategy
         // fallback aleatório
         return new RandomMoveStrategy().NextPosition(e, g);
     }
+    
+    public IMovementStrategy Clone() => new ZombiePrimeChaseStrategy();
 }
 
 // Tenta avançar à direita evitando zumbis, caso possível
@@ -59,28 +65,33 @@ public class BlueSmartMoveStrategy(int range = 1) : IMovementStrategy
     {
         int ux = e.Position.X, uy = e.Position.Y;
         // posições candidatas em ordem:
-        var candidates = new List<(int x,int y)>{ (ux + 1, uy), (ux + 1, uy - 1), (ux + 1, uy + 1) };
-        foreach(var (nx, ny) in candidates)
+        var candidates = new List<(int x, int y)> { (ux + 1, uy), (ux + 1, uy - 1), (ux + 1, uy + 1) };
+        foreach (var (nx, ny) in candidates)
         {
             if (Grid.IsInside(nx, ny) && g.CanMove(nx, ny))
             {
                 // evita se houver Zombie adjacente à célula de destino
                 bool safe = true;
-                foreach(var adj in g.GetNeighbors(nx, ny, range)) if (adj != null && adj.IsAZombie) { safe = false; break; }
+                foreach (var adj in g.GetNeighbors(nx, ny, range))
+                {
+                    ActorEntity actor = (ActorEntity)adj;
+                    if (actor != null && actor.Type == GameConfig.ActorEntityType.Zombie) { safe = false; break; }
+                }
                 if (safe) return (nx, ny);
             }
         }
         // se não achou caminho seguro, afasta-se do zumbi mais próximo
         Entity nearest = null; int bestDist = int.MaxValue;
-        for(int i = 0; i < GameConfig.GridWidth; i++) for(int j = 0; j < GameConfig.GridHeight; j++)
-        {
-            var other = g.GetEntityAt(i, j);
-            if (other != null && other.IsAZombie)
+        for (int i = 0; i < GameConfig.GridWidth; i++) for (int j = 0; j < GameConfig.GridHeight; j++)
             {
-                int d = Math.Abs(ux - i) + Math.Abs(uy - j);
-                if (d < bestDist) { bestDist = d; nearest = other; }
+                var other = g.GetEntityAt(i, j);
+                ActorEntity actor = (ActorEntity)other;
+                if (actor != null && actor.Type == GameConfig.ActorEntityType.Zombie)
+                {
+                    int d = Math.Abs(ux - i) + Math.Abs(uy - j);
+                    if (d < bestDist) { bestDist = d; nearest = other; }
+                }
             }
-        }
         if (nearest != null)
         {
             int dx = Math.Sign(ux - nearest.Position.X);
@@ -90,4 +101,6 @@ public class BlueSmartMoveStrategy(int range = 1) : IMovementStrategy
         }
         return new RandomMoveStrategy().NextPosition(e, g); // fallback aleatório
     }
+    
+    public IMovementStrategy Clone() => new BlueSmartMoveStrategy();
 }

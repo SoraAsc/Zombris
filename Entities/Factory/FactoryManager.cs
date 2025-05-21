@@ -14,13 +14,13 @@ public static class FactoryManager
 
     public static Entity Create(GameConfig.ZombieType type, int x, int y)
     {
-        Entity e = new Zombie(type + "_" + nextId++, new Point(x, y));
+        Entity e = new ActorEntity(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Zombie);
         switch (type)
         {
             case GameConfig.ZombieType.ZombiePrime:
                 e.InitializeValues(1, 500);
                 e.AddComponent(new MovementComponent(new ZombiePrimeChaseStrategy()));
-                // e.AddComponent(new BehaviorComponent([new InfectStrategy(1)]));
+                e.AddComponent(new BehaviorComponent([new InfectStrategy(1)]));
                 break;
         }
         return e;
@@ -28,7 +28,7 @@ public static class FactoryManager
 
     public static Entity Create(GameConfig.BlueType type, int x, int y)
     {
-        Entity e = new Blue(type + "_" + nextId++, new Point(x, y));
+        Entity e = new ActorEntity(type + "_" + nextId++, new Point(x, y), GameConfig.ActorEntityType.Blue);
         switch (type)
         {
             case GameConfig.BlueType.BluePrime:
