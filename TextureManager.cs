@@ -1,44 +1,53 @@
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace Zombris;
-
+namespace Zombris
+{
     public static class TextureManager
     {
-        static readonly Dictionary<string, Texture2D> textures = [];
+        // Dicionário onde as Textures ficam armazenadas pelo nome virtual (asset name)
+        private static readonly Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
 
-        // public static void LoadAll(ContentManager content)
-        // {
-        //     var assets = new[]
-        //     {
-        //         "Sprites/Tiles/tile0"
-        //     };
-
-        //     foreach (var asset in assets) textures[asset] = content.Load<Texture2D>(asset);
-        // }
-
+        /// <summary>
+        /// Carrega todas as Textures2D compiladas (.xnb) que estejam na pasta de Content do output.
+        /// </summary>
         public static void LoadAll(ContentManager content)
         {
-            string root = content.RootDirectory;
-            string spritesFolder = Path.Combine(root, "Sprites");
+            textures.Clear();
 
-            if (!Directory.Exists(spritesFolder))
-                throw new DirectoryNotFoundException($"Sprites folder not found: {spritesFolder}");
+            string contentDir = Path.Combine(AppContext.BaseDirectory, content.RootDirectory);
 
-            var files = Directory.GetFiles(spritesFolder, "*.xnb", SearchOption.AllDirectories);
-            foreach (var path in files)
+            if (!Directory.Exists(contentDir))
+                throw new DirectoryNotFoundException($"Content directory not found: {contentDir}");
+
+            // Encontra todos os .xnb recursivamente
+            var files = Directory.GetFiles(contentDir, "*.xnb", SearchOption.AllDirectories);
+
+            foreach (var fullPath in files)
             {
-                // Derive asset name: relative path from root without extension
-                string relative = Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '/');
-                string assetName = relative[..^".xnb".Length];
+                // Pega o caminho relativo dentro de Content e remove a extensão
+                string relativePath = Path.GetRelativePath(contentDir, fullPath);
+                string assetName = Path.ChangeExtension(relativePath, null)
+                                         .Replace(Path.DirectorySeparatorChar, '/');
 
+                // Carrega via ContentManager usando o nome de asset (sem .xnb)
                 textures[assetName] = content.Load<Texture2D>(assetName);
             }
         }
 
-        public static Texture2D Get(string key) => textures.TryGetValue(key, out var tex) 
-            ? tex 
-            : throw new KeyNotFoundException($"Texture '{key}' not found");
+        /// <summary>
+        /// Recupera a Texture2D já carregada pelo key (asset name).
+        /// </summary>
+        public static Texture2D Get(string key)
+        {
+            if (textures.TryGetValue(key, out var tex))
+                return tex;
+
+            throw new KeyNotFoundException($"Texture '{key}' not found. " +
+                                           "Certifique-se de que ela foi compilada e carregada em LoadAll.");
+        }
     }
+}
