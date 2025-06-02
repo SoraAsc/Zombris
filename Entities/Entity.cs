@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,19 +23,30 @@ public abstract class Entity(string id, Point Position, Color color)
     protected int speedMs = 200;
 
     protected Thread moveThread;
+    protected CancellationTokenSource cancellationTokenSource;
     protected Color color = color;
 
     public void Start(Grid grid)
     {
+        if (IsRunning) return;
+        
         IsRunning = true;
-        moveThread = new(() => Simulate(grid));
+        cancellationTokenSource = new CancellationTokenSource();
+        moveThread = new(() => Simulate(grid, cancellationTokenSource.Token))
+        {
+            IsBackground = true // Marca a thread como background para que ela não impeça o programa de terminar
+        };
         moveThread.Start();
     }
 
     public void Stop()
     {
+        if (!IsRunning) return;
+
         IsRunning = false;
-        if(moveThread != null && moveThread.IsAlive) moveThread.Interrupt();
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
+        cancellationTokenSource = null;
     }
 
     public void InitializeValues(int hp, int speedMs)
@@ -73,14 +83,20 @@ public abstract class Entity(string id, Point Position, Color color)
         return comp as T;
     }
 
-    private void Simulate(Grid grid)
+    private void Simulate(Grid grid, CancellationToken cancellationToken)
     {
-        while (IsRunning)
+        try
         {
-            Get<MovementComponent>()?.Execute(grid);
-            Get<BehaviorComponent>()?.Execute(grid);
-            Thread.Sleep(speedMs);
+            while (IsRunning && !cancellationToken.IsCancellationRequested)
+            {
+                Get<MovementComponent>()?.Execute(grid);
+                Get<BehaviorComponent>()?.Execute(grid);
+                Thread.Sleep(speedMs);
+            }
         }
+        catch (OperationCanceledException) { } // Thread foi cancelada
+        catch (Exception) { } // Erro inesperado
+        finally { IsRunning = false; }
     }
 
     public virtual void Draw(SpriteBatch spriteBatch)

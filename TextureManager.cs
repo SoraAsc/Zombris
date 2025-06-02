@@ -9,10 +9,11 @@ namespace Zombris
     public static class TextureManager
     {
         // Dicionário onde as Textures ficam armazenadas pelo nome virtual (asset name)
-        private static readonly Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, Texture2D> textures = [];
 
         /// <summary>
         /// Carrega todas as Textures2D compiladas (.xnb) que estejam na pasta de Content do output.
+        /// Ignora arquivos que não são texturas (como fontes).
         /// </summary>
         public static void LoadAll(ContentManager content)
         {
@@ -28,13 +29,17 @@ namespace Zombris
 
             foreach (var fullPath in files)
             {
-                // Pega o caminho relativo dentro de Content e remove a extensão
-                string relativePath = Path.GetRelativePath(contentDir, fullPath);
-                string assetName = Path.ChangeExtension(relativePath, null)
-                                         .Replace(Path.DirectorySeparatorChar, '/');
+                try
+                {
+                    // Pega o caminho relativo dentro de Content e remove a extensão
+                    string relativePath = Path.GetRelativePath(contentDir, fullPath);
+                    string assetName = Path.ChangeExtension(relativePath, null)
+                                             .Replace(Path.DirectorySeparatorChar, '/');
 
-                // Carrega via ContentManager usando o nome de asset (sem .xnb)
-                textures[assetName] = content.Load<Texture2D>(assetName);
+                    var texture = content.Load<Texture2D>(assetName);
+                    textures[assetName] = texture;
+                }
+                catch (InvalidCastException) { continue; } // Ignora arquivos que não são texturas
             }
         }
 
@@ -43,11 +48,8 @@ namespace Zombris
         /// </summary>
         public static Texture2D Get(string key)
         {
-            if (textures.TryGetValue(key, out var tex))
-                return tex;
-
-            throw new KeyNotFoundException($"Texture '{key}' not found. " +
-                                           "Certifique-se de que ela foi compilada e carregada em LoadAll.");
+            if (textures.TryGetValue(key, out var tex)) return tex;
+            throw new KeyNotFoundException($"Texture not found: {key}");
         }
     }
 }

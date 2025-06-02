@@ -73,11 +73,17 @@ public class Grid(int width, int height, int cellSize)
         return neighbors;
     }
 
+    public List<Entity> GetAllEntities()
+    {
+        List<Entity> allEntities = [];
+        lock(lockObj) { allEntities.AddRange(entities.Values); }
+        return allEntities;
+    }
+
     public void Place(Entity e, int x, int y)
     {
         lock(lockObj)
         {
-            // if(entities.ContainsKey((x, y)) && entities[(x, y)] != null && e.IsRunning) entities[(x, y)]?.Stop();
             e.ChangePosition(x, y);
             entities[(x, y)] = e;
         }
